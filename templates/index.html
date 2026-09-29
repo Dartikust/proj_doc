@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}DocFlow — реестр договоров{% endblock %}
+
+{% block content %}
+<section class="dashboard-heading">
+    <div>
+        <div class="eyebrow">Рабочее пространство</div>
+        <h1>Документы под контролем</h1>
+        <p class="subtitle">Загружайте договоры, проверяйте реквизиты и находите нужный документ за несколько секунд.</p>
+    </div>
+</section>
+
+<section class="overview-grid">
+    <div class="overview-main card" id="upload">
+        <div class="section-header upload-header">
+            <div>
+                <span class="section-kicker">Новый документ</span>
+                <h2>Загрузить договор</h2>
+                <p>PDF или DOCX до 20 МБ. После подключения парсера реквизиты будут заполняться автоматически.</p>
+            </div>
+        </div>
+
+        <form class="upload-zone" action="/upload" method="post" enctype="multipart/form-data" id="uploadForm">
+            <input id="fileInput" type="file" name="file" accept=".pdf,.docx" required hidden>
+            <div class="upload-icon" aria-hidden="true">↑</div>
+            <div>
+                <h3>Перетащите файл сюда</h3>
+                <p>или выберите его на компьютере</p>
+            </div>
+            <button class="primary-btn" type="button" id="chooseFileBtn">Выбрать файл</button>
+            <div class="selected-file" id="selectedFile"></div>
+            <button class="submit-upload" type="submit" id="uploadBtn">Загрузить выбранный файл →</button>
+        </form>
+
+        {% if error %}
+        <div class="alert error-box">{{ error }}</div>
+        {% endif %}
+    </div>
+
+    <aside class="overview-side">
+        <div class="metric-card card">
+            <span class="metric-label">Всего документов</span>
+            <strong>{{ stats.total }}</strong>
+            <span class="metric-note">в реестре</span>
+        </div>
+        <div class="metric-card card">
+            <span class="metric-label">С заполненными полями</span>
+            <strong>{{ stats.processed }}</strong>
+            <span class="metric-note">готовы к поиску</span>
+        </div>
+        <div class="metric-card card">
+            <span class="metric-label">Проверено вручную</span>
+            <strong>{{ stats.checked }}</strong>
+            <span class="metric-note">подтверждённые записи</span>
+        </div>
+    </aside>
+</section>
+
+<section class="content-card card dashboard-table-card">
+    <div class="section-header">
+        <div>
+            <span class="section-kicker">Недавняя активность</span>
+            <h2>Последние документы</h2>
+        </div>
+        <a href="/documents" class="secondary-btn">Открыть реестр →</a>
+    </div>
+
+    {% if contracts %}
+    <div class="table-wrap">
+        <table class="registry-table compact-table">
+            <thead>
+            <tr>
+                <th>Документ</th>
+                <th>№ договора</th>
+                <th>Дата</th>
+                <th>Стороны</th>
+                <th class="num-cell">Сумма</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for contract in contracts %}
+            <tr class="clickable-row" data-href="/document/{{ contract.id }}">
+                <td>
+                    <div class="file-cell">
+                        <span class="file-badge {{ contract.filename.split('.')[-1]|lower }}">{{ contract.filename.split('.')[-1]|upper }}</span>
+                        <span class="file-name">{{ contract.filename }}</span>
+                    </div>
+                </td>
+                <td>{{ contract.number or '—' }}</td>
+                <td>{{ contract.contract_date or '—' }}</td>
+                <td>
+                    {% if contract.customer or contract.contractor %}
+                    <div class="party-cell">
+                        <span>{{ contract.customer or '—' }}</span>
+                        <span class="party-arrow">→</span>
+                        <span>{{ contract.contractor or '—' }}</span>
+                    </div>
+                    {% else %}—{% endif %}
+                </td>
+                <td class="num-cell amount-cell">{{ contract.amount or '—' }}</td>
+                <td class="row-action">›</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state clean-empty">
+        <div class="empty-icon">▤</div>
+        <h3>Реестр пока пуст</h3>
+        <p>После загрузки первый договор появится здесь.</p>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

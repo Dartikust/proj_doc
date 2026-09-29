@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+contracts.db
+uploads/*
+!uploads/.gitkeep

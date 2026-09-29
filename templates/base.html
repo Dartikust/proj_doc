@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f7f9">
+    <title>{% block title %}DocFlow{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="app-header">
+    <div class="header-inner">
+        <a class="brand" href="/" aria-label="DocFlow">
+            <span class="brand-mark" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </span>
+            <span class="brand-copy">
+                <strong>DocFlow</strong>
+                <small>Управление договорами</small>
+            </span>
+        </a>
+
+        <nav class="menu" aria-label="Главная навигация">
+            <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">Обзор</a>
+            <a href="/documents" class="nav-link {% if request.url.path.startswith('/document') %}active{% endif %}">Документы</a>
+        </nav>
+
+    </div>
+</header>
+
+<div class="page-shell">
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

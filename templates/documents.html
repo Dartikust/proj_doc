@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Документы — DocFlow{% endblock %}
+
+{% macro sort_header(key, label) %}
+    {% set is_active = filters.sort == key %}
+    {% set next_order = 'asc' if (not is_active or filters.order == 'desc') else 'desc' %}
+    <a class="sort-link {% if is_active %}active{% endif %}" href="{{ documents_url(sort=key, order=next_order, page=1) }}">
+        {{ label }}
+        <span class="sort-icon">{% if is_active %}{{ '↑' if filters.order == 'asc' else '↓' }}{% else %}↕{% endif %}</span>
+    </a>
+{% endmacro %}
+
+{% block content %}
+<section class="page-heading registry-heading">
+    <div>
+        <div class="eyebrow">Реестр</div>
+        <div class="title-line">
+            <h1>Документы</h1>
+            <span class="count-badge">{{ total }}</span>
+        </div>
+        <p class="subtitle">Ищите по номеру, файлу, заказчику или исполнителю. Для точного отбора используйте дату, сумму и статус.</p>
+    </div>
+</section>
+
+<section class="filters-card card">
+    <form action="/documents" method="get" class="filters-form" id="filtersForm">
+        <div class="search-row">
+            <label class="search-field">
+                <span class="search-icon" aria-hidden="true">⌕</span>
+                <input type="search" name="q" value="{{ filters.q }}" placeholder="Номер договора, заказчик, исполнитель или файл…" autocomplete="off">
+            </label>
+            <button type="submit" class="primary-btn filter-submit">Найти</button>
+            {% if active_filter_count %}
+            <a class="reset-link" href="/documents">Сбросить <span class="filter-count">{{ active_filter_count }}</span></a>
+            {% endif %}
+        </div>
+
+        <div class="filter-grid compact-filters">
+            <div class="filter-group">
+                <span class="filter-group-title">Период договора</span>
+                <div class="filter-pair">
+                    <label class="filter-field">
+                        <span>С</span>
+                        <input type="date" name="date_from" value="{{ filters.date_from }}">
+                    </label>
+                    <label class="filter-field">
+                        <span>По</span>
+                        <input type="date" name="date_to" value="{{ filters.date_to }}">
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-group-title">Сумма, ₽</span>
+                <div class="filter-pair">
+                    <label class="filter-field amount-filter">
+                        <span>От</span>
+                        <input type="text" inputmode="decimal" name="amount_min" value="{{ filters.amount_min }}" placeholder="0">
+                    </label>
+                    <label class="filter-field amount-filter">
+                        <span>До</span>
+                        <input type="text" inputmode="decimal" name="amount_max" value="{{ filters.amount_max }}" placeholder="Без лимита">
+                    </label>
+                </div>
+            </div>
+
+            <label class="filter-field filter-standalone">
+                <span>Статус</span>
+                <select name="status">
+                    <option value="">Все</option>
+                    {% for item in options.statuses %}
+                    <option value="{{ item }}" {% if filters.status == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="filter-field filter-standalone sort-field">
+                <span>Сортировка</span>
+                <select name="sort">
+                    {% for value, label in sort_labels.items() %}
+                    <option value="{{ value }}" {% if filters.sort == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="filter-field filter-standalone order-field">
+                <span>Порядок</span>
+                <select name="order">
+                    <option value="desc" {% if filters.order == 'desc' %}selected{% endif %}>По убыванию</option>
+                    <option value="asc" {% if filters.order == 'asc' %}selected{% endif %}>По возрастанию</option>
+                </select>
+            </label>
+        </div>
+    </form>
+</section>
+
+<section class="card registry-card">
+    <div class="registry-toolbar">
+        <div>
+            {% if total %}
+            <strong>{{ total }}</strong>
+            <span>документ{{ 'а' if total % 10 in [2,3,4] and total % 100 not in [12,13,14] else 'ов' }}</span>
+            {% else %}
+            <span>Документы не найдены</span>
+            {% endif %}
+        </div>
+        <div class="toolbar-note">Нажмите на строку, чтобы открыть документ</div>
+    </div>
+
+    {% if contracts %}
+    <div class="table-wrap">
+        <table class="registry-table">
+            <thead>
+            <tr>
+                <th>{{ sort_header('filename', 'Документ') }}</th>
+                <th>{{ sort_header('number', '№ договора') }}</th>
+                <th>{{ sort_header('date', 'Дата') }}</th>
+                <th>Заказчик</th>
+                <th>Исполнитель</th>
+                <th class="num-cell">{{ sort_header('amount', 'Сумма') }}</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for contract in contracts %}
+            <tr class="clickable-row" data-href="/document/{{ contract.id }}" tabindex="0">
+                <td>
+                    <div class="file-cell">
+                        <span class="file-badge {{ contract.filename.split('.')[-1]|lower }}">{{ contract.filename.split('.')[-1]|upper }}</span>
+                        <div class="file-meta">
+                            <span class="file-name">{{ contract.filename }}</span>
+                            <small>Добавлен {{ contract.created_at[:10] if contract.created_at else '—' }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td class="strong-cell">{{ contract.number or '—' }}</td>
+                <td>{{ contract.contract_date or '—' }}</td>
+                <td>{{ contract.customer or '—' }}</td>
+                <td>{{ contract.contractor or '—' }}</td>
+                <td class="num-cell amount-cell">{{ contract.amount or '—' }}</td>
+                <td>
+                    {% if contract.status == 'Проверено вручную' %}
+                    <span class="status-pill success"><i></i>{{ contract.status }}</span>
+                    {% elif contract.status == 'Ожидает обработки' %}
+                    <span class="status-pill neutral"><i></i>{{ contract.status }}</span>
+                    {% else %}
+                    <span class="status-pill info"><i></i>{{ contract.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="row-action">›</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <nav class="pagination" aria-label="Страницы документов">
+        <a class="page-btn {% if page <= 1 %}disabled{% endif %}" {% if page > 1 %}href="{{ documents_url(page=page-1) }}"{% endif %}>←</a>
+        <div class="page-numbers">
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                    <a class="page-number {% if p == page %}active{% endif %}" href="{{ documents_url(page=p) }}">{{ p }}</a>
+                {% elif p == page - 3 or p == page + 3 %}
+                    <span class="page-dots">…</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <a class="page-btn {% if page >= total_pages %}disabled{% endif %}" {% if page < total_pages %}href="{{ documents_url(page=page+1) }}"{% endif %}>→</a>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="empty-state clean-empty">
+        <div class="empty-icon">⌕</div>
+        <h3>Ничего не найдено</h3>
+        <p>{% if active_filter_count %}Измените условия поиска или сбросьте фильтры.{% else %}Реестр пока пуст. Добавить первый договор можно на странице «Обзор».{% endif %}</p>
+        {% if active_filter_count %}<a class="secondary-btn" href="/documents">Сбросить фильтры</a>{% endif %}
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

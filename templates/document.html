@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ contract.filename }} — DocFlow{% endblock %}
+
+{% block content %}
+<section class="document-heading">
+    <div class="document-heading-left">
+        <a class="back-link" href="/documents">← Реестр документов</a>
+        <div class="document-title-row">
+            <span class="file-badge large {{ contract.filename.split('.')[-1]|lower }}">{{ contract.filename.split('.')[-1]|upper }}</span>
+            <div>
+                <h1>{{ contract.number or contract.filename }}</h1>
+                <p>{{ contract.filename }} · загружен {{ contract.created_at }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="document-actions">
+        {% if contract.status == 'Проверено вручную' %}
+        <span class="status-pill success"><i></i>{{ contract.status }}</span>
+        {% else %}
+        <span class="status-pill neutral"><i></i>{{ contract.status }}</span>
+        {% endif %}
+        <a class="secondary-btn" href="/document/{{ contract.id }}/file">Скачать файл</a>
+    </div>
+</section>
+
+<div class="document-grid">
+    <section class="card document-preview">
+        <div class="section-header">
+            <div>
+                <span class="section-kicker">Содержимое</span>
+                <h2>Текст документа</h2>
+            </div>
+        </div>
+
+        {% if contract.raw_text %}
+            <div class="raw-text">{{ contract.raw_text }}</div>
+        {% else %}
+            <div class="preview-placeholder">
+                <div class="preview-doc-icon">
+                    <span>{{ contract.filename.split('.')[-1]|upper }}</span>
+                </div>
+                <h3>Текст появится после подключения парсера</h3>
+                <p>Файл уже сохранён в системе. Следующим этапом сюда подключим извлечение текста из PDF/DOCX.</p>
+                <a class="secondary-btn" href="/document/{{ contract.id }}/file">Открыть исходный файл</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="card details-panel">
+        <div class="section-header details-header">
+            <div>
+                <span class="section-kicker">Реквизиты</span>
+                <h2>Данные договора</h2>
+            </div>
+            <span class="edit-note">Можно исправить вручную</span>
+        </div>
+
+        <form action="/document/{{ contract.id }}/edit" method="post" class="details-form">
+            <label>
+                <span>Номер договора</span>
+                <input name="number" value="{{ contract.number or '' }}" placeholder="Например, 128/26">
+            </label>
+            <label>
+                <span>Дата заключения</span>
+                <input type="date" name="contract_date" value="{{ contract.contract_date_iso or '' }}">
+            </label>
+            <label>
+                <span>Заказчик</span>
+                <input name="customer" value="{{ contract.customer or '' }}" placeholder="ООО «Заказчик»">
+            </label>
+            <label>
+                <span>Исполнитель</span>
+                <input name="contractor" value="{{ contract.contractor or '' }}" placeholder="ООО «Исполнитель»">
+            </label>
+            <label>
+                <span>Сумма договора</span>
+                <div class="input-suffix detail-amount">
+                    <input name="amount" inputmode="decimal" value="{{ contract.amount or '' }}" placeholder="150 000">
+                    <b>₽</b>
+                </div>
+            </label>
+            <button class="primary-btn full-width" type="submit">Сохранить изменения</button>
+        </form>
+
+        <div class="danger-zone">
+            <span>Управление документом</span>
+            <form action="/document/{{ contract.id }}/delete" method="post" onsubmit="return confirm('Удалить документ без возможности восстановления?')">
+                <button class="danger-link" type="submit">Удалить документ</button>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
