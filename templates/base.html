@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <title>{% block title %}Реестр договоров{% endblock %}</title>
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="{{ url_for('home') }}"><span class="brand-icon">Д</span> Реестр договоров</a>
+    <nav aria-label="Основная навигация">
+      <a href="{{ url_for('home') }}">Документы</a>
+      <a href="{{ url_for('about') }}">Как это работает</a>
+    </nav>
+    <span class="badge">Учебный прототип</span>
+  </header>
+  <main class="container">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="notice {{ category }}" role="status">{{ message }}</div>
+    {% endfor %}
+    {% block body %}{% endblock %}
+  </main>
+  <footer class="container footer">PDF / DOCX · Проверяйте найденные значения по документу</footer>
+</body>
+</html>

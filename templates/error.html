@@ -1,0 +1,2 @@
+{% extends 'base.html' %}
+{% block body %}<h1>Не удалось отправить файл</h1><div class="notice error">{{ message }}</div><a class="button" href="{{ url_for('home') }}">Вернуться к загрузке</a>{% endblock %}

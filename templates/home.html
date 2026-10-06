@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Документы — Реестр договоров{% endblock %}
+{% block body %}
+<section class="intro">
+  <p class="eyebrow">ДОКУМЕНТЫ И ДАННЫЕ</p>
+  <h1>Договор в файле.<br>Реквизиты в реестре.</h1>
+  <p class="lead">Загрузите договор — сервис найдёт номер, дату заключения, стороны и сумму.</p>
+</section>
+<section class="upload-panel" aria-labelledby="upload-title">
+  <div>
+    <h2 id="upload-title">Добавить договор</h2>
+    <p>PDF с текстовым слоем или DOCX. До 10 МБ.</p>
+    <a class="sample-link" href="{{ url_for('sample') }}">Скачать учебный договор ↓</a>
+  </div>
+  <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="document">Файл договора</label>
+    <input id="document" name="document" type="file" accept=".pdf,.docx" required aria-describedby="file-help">
+    <button type="submit">Извлечь реквизиты →</button>
+    <p class="hint" id="file-help">Сканированные PDF пока не поддерживаются.</p>
+  </form>
+</section>
+<section class="registry" aria-labelledby="registry-title">
+  <div class="section-heading"><h2 id="registry-title">Реестр договоров</h2><span class="count">{{ documents|length }}</span></div>
+  {% if documents %}
+  <div class="table-scroll"><table>
+    <thead><tr><th>Документ / номер</th><th>Дата</th><th>Заказчик</th><th>Исполнитель</th><th>Сумма, ₽</th><th>Результат</th></tr></thead>
+    <tbody>{% for document in documents %}<tr>
+      <td><a href="{{ url_for('document', document_id=document.id) }}">{{ document.number or 'Номер не найден' }}</a><small>{{ document.original_name }}</small></td>
+      <td>{{ document.date or '—' }}</td><td>{{ document.customer or '—' }}</td>
+      <td>{{ document.contractor or '—' }}</td><td class="money">{{ document.amount or '—' }}</td>
+      <td><span class="status {{ document.status }}">{{ 'Нужна проверка' if document.status == 'review' else 'Поля найдены' }}</span></td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}
+  <div class="empty"><span class="empty-icon">≡</span><h3>Здесь появятся ваши договоры</h3><p>Для первого запуска скачайте учебный договор и загрузите его через форму выше.</p></div>
+  {% endif %}
+</section>
+{% endblock %}
