@@ -9,7 +9,7 @@
 <section class="upload-panel" aria-labelledby="upload-title">
   <div>
     <h2 id="upload-title">Добавить договор</h2>
-    <p>PDF с текстовым слоем или DOCX. До 10 МБ.</p>
+    <p>PDF с текстовым слоем или DOCX. До {{ config.MAX_CONTENT_LENGTH // (1024 * 1024) }} МБ.</p>
     <a class="sample-link" href="{{ url_for('sample') }}">Скачать учебный договор ↓</a>
   </div>
   <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
@@ -21,7 +21,7 @@
   </form>
 </section>
 <section class="registry" aria-labelledby="registry-title">
-  <div class="section-heading"><h2 id="registry-title">Реестр договоров</h2><span class="count">{{ documents|length }}</span></div>
+  <div class="section-heading"><h2 id="registry-title">Реестр договоров</h2><span class="count">{{ documents|length }}</span><a class="all-documents" href="{{ url_for('documents') }}">Поиск и сортировка →</a></div>
   {% if documents %}
   <div class="table-scroll"><table>
     <thead><tr><th>Документ / номер</th><th>Дата</th><th>Заказчик</th><th>Исполнитель</th><th>Сумма, ₽</th><th>Результат</th></tr></thead>

@@ -2,6 +2,7 @@ import json
 from contextlib import contextmanager
 from pathlib import Path
 import sqlite3
+from decimal import Decimal
 
 
 @contextmanager
@@ -33,6 +34,15 @@ def initialize(path):
             status TEXT NOT NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS document_search_index (
+            document_id INTEGER NOT NULL,
+            model TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            chunks TEXT NOT NULL,
+            vectors BLOB NOT NULL,
+            dimensions INTEGER NOT NULL,
+            PRIMARY KEY (document_id, model)
+        )''')
 
 
 def save_document(path, original_name, stored_name, result):
@@ -57,3 +67,49 @@ def list_documents(path):
 def get_document(path, document_id):
     with connect(path) as db:
         return db.execute('SELECT * FROM documents WHERE id = ?', (document_id,)).fetchone()
+
+
+SORT_FIELDS = {'date', 'amount', 'customer', 'contractor', 'recent', 'relevance'}
+
+
+def sort_documents(documents, field='recent', direction='desc'):
+    """Пустые значения в конце; суммы сравниваются как Decimal."""
+    if field not in SORT_FIELDS or direction not in {'asc', 'desc'}:
+        raise ValueError('Недопустимый порядок сортировки.')
+    if field == 'recent':
+        key = lambda document: document['id']
+    elif field == 'amount':
+        key = lambda document: Decimal(document['amount'])
+    elif field in {'customer', 'contractor'}:
+        key = lambda document: document[field].casefold().replace('ё', 'е')
+    elif field == 'relevance':
+        key = lambda document: document['score']
+    else:
+        key = lambda document: document[field]
+    items = sorted(documents, key=lambda document: document['id'], reverse=True)
+    if field == 'recent':
+        present, missing = items, []
+    else:
+        column = 'score' if field == 'relevance' else field
+        present = [item for item in items if item.get(column) is not None]
+        missing = [item for item in items if item.get(column) is None]
+    return sorted(present, key=key, reverse=direction == 'desc') + missing
+
+
+def get_search_index(path, document_id, model, content_hash):
+    with connect(path) as db:
+        return db.execute('''SELECT * FROM document_search_index
+            WHERE document_id = ? AND model = ? AND content_hash = ?''',
+                          (document_id, model, content_hash)).fetchone()
+
+
+def save_search_index(path, document_id, model, content_hash, chunks, vectors, dimensions):
+    with connect(path) as db:
+        db.execute('''INSERT INTO document_search_index
+            (document_id, model, content_hash, chunks, vectors, dimensions)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(document_id, model) DO UPDATE SET
+            content_hash=excluded.content_hash, chunks=excluded.chunks,
+            vectors=excluded.vectors, dimensions=excluded.dimensions''', (
+                document_id, model, content_hash, json.dumps(chunks, ensure_ascii=False), vectors, dimensions,
+            ))

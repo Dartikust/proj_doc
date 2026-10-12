@@ -63,4 +63,17 @@ pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 14px/1.8 "Segoe UI",
 .prose { max-width: 800px; margin-top: 24px; }
 .prose li { margin-bottom: 14px; }
 .footer { padding-top: 36px; padding-bottom: 24px; color: var(--muted); font-size: 12px; }
+.all-documents { margin-left: auto; font-size: 14px; }
+.search-panel { margin: 24px 0 30px; padding: 24px; background: white; border: 1px solid var(--line); border-radius: 14px; }
+.search-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
+.query-field { grid-column: 1 / -1; }
+input[type=search], select { width: 100%; min-width: 0; border: 1px solid #c5d5cf; border-radius: 8px; padding: 12px; font: inherit; color: var(--ink); background: #f8faf9; }
+select:focus-visible { outline: 3px solid #ddad54; outline-offset: 3px; }
+.search-actions { display: flex; align-items: center; gap: 16px; }
+.search-actions a { font-size: 14px; }
+.result-heading .hint { margin: 0 0 0 auto; }
+.search-snippet td { padding-top: 8px; color: var(--muted); font-size: 13px; border-top: 0; background: #fbfcfb; }
+.similarity { display: inline-block; font-weight: 600; color: var(--accent); margin-right: 8px; }
+.pagination { margin: 24px 0 0; display: flex; align-items: center; justify-content: center; gap: 20px; }
+@media (max-width: 760px) { .search-form { grid-template-columns: 1fr; } .query-field { grid-column: 1; } .search-panel { padding: 20px; } .result-heading { flex-wrap: wrap; } .result-heading .hint { width: 100%; margin-left: 0; } .section-heading { flex-wrap: wrap; } .all-documents { width: 100%; margin-left: 0; } nav { flex-wrap: wrap; gap: 12px; } }
 @media (max-width: 760px) { .header { flex-wrap: wrap; gap: 14px; padding: 16px 24px; } nav { margin-left: 0; width: 100%; order: 3; } .badge { margin-left: auto; } .brand { font-size: 16px; } .container { padding: 0 20px; } main.container { padding-top: 28px; } .upload-panel { grid-template-columns: 1fr; gap: 24px; padding: 22px; } .fields { grid-template-columns: 1fr; } .document-heading { align-items: flex-start; flex-direction: column; } .text-panel { padding: 20px; } }

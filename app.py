@@ -8,10 +8,12 @@ from uuid import uuid4
 
 from flask import Flask, abort, flash, redirect, render_template, request, send_file, session, url_for
 from werkzeug.exceptions import RequestEntityTooLarge
+from app_config import load_settings
 
 from contracts.pipeline import process_document
 from contracts.readers import DocumentError
 from contracts import storage
+from contracts.search import SemanticSearch, SearchUnavailable
 
 
 def create_app(config=None):
@@ -22,7 +24,11 @@ def create_app(config=None):
         UPLOAD_FOLDER=str(Path(app.instance_path) / 'uploads'),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
+        SEARCH_MODEL_DIR=str(Path(app.instance_path) / 'models'),
+        SEARCH_MIN_SCORE=0.3,
+        DOCUMENTS_PAGE_SIZE=25,
     )
+    app.config.update(load_settings())
     if config:
         app.config.update(config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
@@ -36,6 +42,7 @@ def create_app(config=None):
         app.config['SECRET_KEY'] = key_path.read_text(encoding='utf-8')
     Path(app.config['UPLOAD_FOLDER']).mkdir(parents=True, exist_ok=True)
     storage.initialize(app.config['DATABASE'])
+    app.extensions['semantic_search'] = SemanticSearch(app.config['DATABASE'], app.config['SEARCH_MODEL_DIR'])
 
     @app.context_processor
     def csrf_context():
@@ -54,6 +61,40 @@ def create_app(config=None):
     def home():
         documents = storage.list_documents(app.config['DATABASE'])
         return render_template('home.html', documents=documents)
+
+    @app.get('/documents')
+    def documents():
+        query = request.args.get('q', '').strip()
+        if len(query) > 500:
+            abort(400, description='Поисковый запрос должен быть не длиннее 500 символов.')
+        sort = request.args.get('sort', 'relevance' if query else 'recent')
+        if sort == 'relevance' and not query:
+            sort = 'recent'
+        direction = request.args.get('direction', 'asc' if sort in {'customer', 'contractor'} else 'desc')
+        if sort not in storage.SORT_FIELDS or direction not in {'asc', 'desc'}:
+            abort(400, description='Выберите допустимый вариант сортировки.')
+        try:
+            page = max(1, int(request.args.get('page', '1')))
+        except ValueError:
+            abort(400, description='Некорректный номер страницы.')
+        records = [dict(item) for item in storage.list_documents(app.config['DATABASE'])]
+        total = len(records)
+        search_error = None
+        if query:
+            try:
+                records = app.extensions['semantic_search'].search(records, query, app.config['SEARCH_MIN_SCORE'])
+            except SearchUnavailable as exc:
+                app.logger.warning('Semantic search unavailable', exc_info=True)
+                search_error = str(exc)
+                records = []
+        records = storage.sort_documents(records, sort, direction)
+        count = len(records)
+        size = app.config['DOCUMENTS_PAGE_SIZE']
+        pages = max(1, (count + size - 1) // size)
+        page = min(page, pages)
+        return render_template('documents.html', documents=records[(page - 1) * size:page * size],
+                               query=query, sort=sort, direction=direction, total=total, count=count,
+                               page=page, pages=pages, search_error=search_error), 503 if search_error else 200
 
     @app.post('/upload')
     def upload():
@@ -123,7 +164,8 @@ def create_app(config=None):
 
     @app.errorhandler(RequestEntityTooLarge)
     def file_too_large(error):
-        return render_template('error.html', message='Файл слишком большой. Лимит запроса — 10 МБ.'), 413
+        limit = app.config['MAX_CONTENT_LENGTH'] // (1024 * 1024)
+        return render_template('error.html', message=f'Файл слишком большой. Лимит запроса — {limit} МБ.'), 413
 
     @app.errorhandler(400)
     def bad_request(error):
@@ -133,4 +175,5 @@ def create_app(config=None):
 
 
 if __name__ == '__main__':
-    create_app().run(host='127.0.0.1', port=5000)
+    app = create_app()
+    app.run(host=app.config['APP_HOST'], port=app.config['APP_PORT'], debug=app.config['DEBUG'], load_dotenv=False)

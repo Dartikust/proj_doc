@@ -1,0 +1,134 @@
+[
+  {
+    "file": "contract-01-labels.docx",
+    "style": "labels",
+    "fields": {
+      "number": "Д-001/2026",
+      "date": "2026-01-06",
+      "customer": "ООО «Заказчик 1»",
+      "contractor": "ООО «Исполнитель 1»",
+      "amount": "10000.25"
+    }
+  },
+  {
+    "file": "contract-02-prose.docx",
+    "style": "prose",
+    "fields": {
+      "number": "Д-002/2026",
+      "date": "2026-02-07",
+      "customer": "ООО «Заказчик 2»",
+      "contractor": "ООО «Исполнитель 2»",
+      "amount": "20000.50"
+    }
+  },
+  {
+    "file": "contract-03-table.docx",
+    "style": "table",
+    "fields": {
+      "number": "Д-003/2026",
+      "date": "2026-03-08",
+      "customer": "ООО «Заказчик 3»",
+      "contractor": "ООО «Исполнитель 3»",
+      "amount": "30000.25"
+    }
+  },
+  {
+    "file": "contract-04-labels.docx",
+    "style": "labels",
+    "fields": {
+      "number": "Д-004/2026",
+      "date": "2026-04-09",
+      "customer": "ООО «Заказчик 4»",
+      "contractor": "ООО «Исполнитель 4»",
+      "amount": "40000.50"
+    }
+  },
+  {
+    "file": "contract-05-prose.docx",
+    "style": "prose",
+    "fields": {
+      "number": "Д-005/2026",
+      "date": "2026-05-10",
+      "customer": "ООО «Заказчик 5»",
+      "contractor": "ООО «Исполнитель 5»",
+      "amount": "50000.25"
+    }
+  },
+  {
+    "file": "contract-06-table.docx",
+    "style": "table",
+    "fields": {
+      "number": "Д-006/2026",
+      "date": "2026-06-11",
+      "customer": "ООО «Заказчик 6»",
+      "contractor": "ООО «Исполнитель 6»",
+      "amount": "60000.50"
+    }
+  },
+  {
+    "file": "contract-07-labels.docx",
+    "style": "labels",
+    "fields": {
+      "number": "Д-007/2026",
+      "date": "2026-07-12",
+      "customer": "ООО «Заказчик 7»",
+      "contractor": "ООО «Исполнитель 7»",
+      "amount": "70000.25"
+    }
+  },
+  {
+    "file": "contract-08-prose.docx",
+    "style": "prose",
+    "fields": {
+      "number": "Д-008/2026",
+      "date": "2026-08-13",
+      "customer": "ООО «Заказчик 8»",
+      "contractor": "ООО «Исполнитель 8»",
+      "amount": "80000.50"
+    }
+  },
+  {
+    "file": "contract-09-table.docx",
+    "style": "table",
+    "fields": {
+      "number": "Д-009/2026",
+      "date": "2026-09-14",
+      "customer": "ООО «Заказчик 9»",
+      "contractor": "ООО «Исполнитель 9»",
+      "amount": "90000.25"
+    }
+  },
+  {
+    "file": "contract-10-labels.docx",
+    "style": "labels",
+    "fields": {
+      "number": "Д-010/2026",
+      "date": "2026-10-15",
+      "customer": "ООО «Заказчик 10»",
+      "contractor": "ООО «Исполнитель 10»",
+      "amount": "100000.50"
+    }
+  },
+  {
+    "file": "contract-11-prose.docx",
+    "style": "prose",
+    "fields": {
+      "number": "Д-011/2026",
+      "date": "2026-11-16",
+      "customer": "ООО «Заказчик 11»",
+      "contractor": "ООО «Исполнитель 11»",
+      "amount": "110000.25"
+    }
+  },
+  {
+    "file": "contract-12-table.docx",
+    "style": "table",
+    "fields": {
+      "number": "Д-012/2026",
+      "date": "2026-12-17",
+      "customer": "ООО «Заказчик 12»",
+      "contractor": "ООО «Исполнитель 12»",
+      "amount": "120000.50"
+    }
+  }
+]

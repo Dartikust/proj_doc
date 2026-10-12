@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Все документы — Реестр договоров{% endblock %}
+{% block body %}
+<div class="document-heading">
+  <div><p class="eyebrow">РЕЕСТР</p><h1>Все документы</h1><p class="lead">Найдите договор по смыслу или упорядочьте список по реквизитам.</p></div>
+  <a class="button secondary" href="{{ url_for('home') }}">+ Загрузить договор</a>
+</div>
+<section class="search-panel" aria-label="Поиск и сортировка">
+  <form method="get" action="{{ url_for('documents') }}" class="search-form">
+    <div class="query-field">
+      <label for="query">Поиск по смыслу</label>
+      <input id="query" name="q" type="search" value="{{ query }}" maxlength="500" placeholder="Например: ремонт помещения или обучение сотрудников" aria-describedby="search-help">
+      <p class="hint" id="search-help">Опишите, что нужно найти. Поиск учитывает полный текст и реквизиты договора.</p>
+    </div>
+    <div class="sort-field"><label for="sort">Сортировать по</label>
+      <select id="sort" name="sort">
+        <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>Соответствию запросу</option>
+        <option value="recent" {% if sort == 'recent' %}selected{% endif %}>Порядку загрузки</option>
+        <option value="date" {% if sort == 'date' %}selected{% endif %}>Дате заключения</option>
+        <option value="amount" {% if sort == 'amount' %}selected{% endif %}>Сумме</option>
+        <option value="customer" {% if sort == 'customer' %}selected{% endif %}>Заказчику</option>
+        <option value="contractor" {% if sort == 'contractor' %}selected{% endif %}>Исполнителю</option>
+      </select>
+    </div>
+    <div class="direction-field"><label for="direction">Порядок</label>
+      <select id="direction" name="direction">
+        <option value="asc" {% if direction == 'asc' %}selected{% endif %}>По возрастанию / А–Я</option>
+        <option value="desc" {% if direction == 'desc' %}selected{% endif %}>По убыванию / Я–А</option>
+      </select>
+    </div>
+    <div class="search-actions"><button type="submit">Применить</button><a href="{{ url_for('documents') }}">Сбросить</a></div>
+  </form>
+</section>
+{% if search_error %}<div class="notice warning" role="alert">{{ search_error }} <a href="{{ url_for('documents') }}">Открыть полный список</a></div>{% endif %}
+<div class="section-heading result-heading">
+  <h2>{{ 'Результаты поиска' if query else 'Документы' }}</h2><span class="count">{{ count }}</span>
+  <span class="hint">{{ 'из ' ~ total ~ ' документов' if query else 'Пустые реквизиты — в конце списка' }}</span>
+</div>
+{% if query and not search_error %}<p class="hint">Сходство показывает близость к запросу и не гарантирует соответствие всех условий.</p>{% endif %}
+{% if documents %}
+<div class="table-scroll"><table class="documents-table">
+  <thead><tr><th>Документ / номер</th><th>Дата заключения</th><th>Заказчик</th><th>Исполнитель</th><th>Сумма, ₽</th><th>Результат</th></tr></thead>
+  <tbody>{% for document in documents %}
+    <tr>
+      <td><a href="{{ url_for('document', document_id=document.id) }}">{{ document.number or 'Номер не найден' }}</a><small>{{ document.original_name }}</small></td>
+      <td>{{ document.date or '—' }}</td><td>{{ document.customer or '—' }}</td><td>{{ document.contractor or '—' }}</td><td class="money">{{ document.amount or '—' }}</td>
+      <td><span class="status {{ document.status }}">{{ 'Нужна проверка' if document.status == 'review' else 'Поля найдены' }}</span></td>
+    </tr>
+    {% if query %}<tr class="search-snippet"><td colspan="6"><span class="similarity">Сходство {{ '%.2f'|format(document.score) }}</span> {{ document.snippet }}</td></tr>{% endif %}
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+  <div class="empty"><span class="empty-icon">≡</span>
+  {% if search_error %}<h3>Поиск временно недоступен</h3><p>Откройте полный список, чтобы продолжить работу с документами.</p>
+  {% elif query %}<h3>Подходящие документы не найдены</h3><p>Попробуйте описать предмет договора другими словами или сбросьте поиск.</p>
+  {% else %}<h3>Документов пока нет</h3><p><a href="{{ url_for('home') }}">Загрузите первый договор</a> — он появится в этом списке.</p>{% endif %}
+  </div>
+{% endif %}
+{% if pages > 1 %}<nav class="pagination" aria-label="Страницы списка">
+  {% if page > 1 %}<a class="button secondary" href="{{ url_for('documents', q=query, sort=sort, direction=direction, page=page-1) }}">← Назад</a>{% endif %}
+  <span>Страница {{ page }} из {{ pages }}</span>
+  {% if page < pages %}<a class="button secondary" href="{{ url_for('documents', q=query, sort=sort, direction=direction, page=page+1) }}">Далее →</a>{% endif %}
+</nav>{% endif %}
+<script>
+  const queryInput = document.getElementById('query');
+  const sortInput = document.getElementById('sort');
+  const directionInput = document.getElementById('direction');
+  let sortChanged = false;
+  sortInput.addEventListener('change', () => {
+    sortChanged = true;
+    directionInput.value = ['customer', 'contractor'].includes(sortInput.value) ? 'asc' : 'desc';
+  });
+  queryInput.addEventListener('input', () => {
+    if (!sortChanged) {
+      sortInput.value = queryInput.value.trim() ? 'relevance' : 'recent';
+      directionInput.value = 'desc';
+    }
+  });
+  document.querySelector('.search-form').addEventListener('submit', () => {
+    if (!queryInput.value.trim() && sortInput.value === 'relevance') sortInput.value = 'recent';
+  });
+</script>
+{% endblock %}

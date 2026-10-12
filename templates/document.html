@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ document.number or document.original_name }} — Реестр договоров{% endblock %}
 {% block body %}
-<a class="back" href="{{ url_for('home') }}">← Все документы</a>
+<a class="back" href="{{ url_for('documents') }}">← Все документы</a>
 <div class="document-heading">
   <div><p class="eyebrow">РЕЗУЛЬТАТ ОБРАБОТКИ</p><h1>{{ document.number or 'Договор без номера' }}</h1><p>{{ document.original_name }}</p></div>
   <a class="button secondary" href="{{ url_for('download', document_id=document.id) }}">Скачать оригинал ↓</a>

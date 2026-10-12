@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ document.number or document.original_name }} — Реестр договоров{% endblock %}
+{% block body %}
+<a class="back" href="{{ url_for('home') }}">← Все документы</a>
+<div class="document-heading">
+  <div><p class="eyebrow">РЕЗУЛЬТАТ ОБРАБОТКИ</p><h1>{{ document.number or 'Договор без номера' }}</h1><p>{{ document.original_name }}</p></div>
+  <a class="button secondary" href="{{ url_for('download', document_id=document.id) }}">Скачать оригинал ↓</a>
+</div>
+{% if warnings %}<div class="notice warning"><strong>Не все поля удалось извлечь.</strong><ul>{% for warning in warnings %}<li>{{ warning }}</li>{% endfor %}</ul></div>{% endif %}
+<p class="hint">Автоматическое извлечение по правилам. Даже найденные поля могут содержать ошибки — сверьте их с текстом ниже.</p>
+<dl class="fields">
+  {% for key, label in [('number', 'Номер договора'), ('date', 'Дата заключения'), ('customer', 'Заказчик'), ('contractor', 'Исполнитель'), ('amount', 'Сумма, руб.')] %}
+  <div><dt>{{ label }}</dt><dd>{{ document[key] or 'Не найдено' }}</dd></div>
+  {% endfor %}
+</dl>
+<section class="text-panel"><h2>Извлечённый текст</h2><pre>{{ document.raw_text }}</pre></section>
+{% endblock %}
